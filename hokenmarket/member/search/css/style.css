@@ -1397,7 +1397,8 @@ sup {
 	padding: 10px;
 	background-color: #ffffff;
 	border-radius: 28px;
-	height: 605px;
+	/* height: 605px; */
+	height: 70%;
 }
 .modal-content h2 {
 	font-weight: bold;
@@ -1407,7 +1408,8 @@ sup {
 }
 .modal-content .content-detail {
 	overflow-y: scroll;
-	height: 500px;
+	/* height: 500px; */
+	height: 82%;
 }
 .modal-content .terms {
 	display: flex;
