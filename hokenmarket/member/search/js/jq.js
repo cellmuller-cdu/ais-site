@@ -1,0 +1,266 @@
+$(function (){
+/*
+    $(".btn-search p").hover(
+        function () {
+         $(this).addClass("hov");
+        },
+        function () {
+         $(this).removeClass("hov");
+        }
+    );
+*/
+//    countTr();
+
+    // 絞り込みに使うタグ（class）を記述
+    var $chkbxFilter_tags =[
+	// a??: キャンペーン
+    'a01','a02','a03','a04',
+    // s??: ライフステージ                        
+    's01','s02','s03','s04',
+    // k??: 保険期間
+    'k01','k02','k03','k04','k05',
+    // m??: 申込方法
+    'm01','m02','m03','m04',
+    // j??: 特別条件
+    'j01','j02','j03','j04','j05','j06','j07','j08',
+    // c??: 保険会社
+    'c01','c02','c03','c04','c05','c06','c07','c08','c10',
+    'c11','c12','c13','c14','c15','c16','c17','c18','c19','c20',
+    'c21','c22','c23','c24','c25','c26','c27','c28','c29','c30',
+	'c31','c32','c33','c34','c35','c36','c37','c38','c39','c40',
+	'c41','c42',
+    // t??: 保険の種類
+    't01','t02','t03','t04','t05','t06','t07','t08','t09','t10',
+    't11','t12','t13','t14','t15','t16','t17','t18','t19','t20',
+    't21','t22','t23','t24','t25','t26','t27','t28','t29','t30',
+    't31','t32','t33','t34','t35','t36','t37','t38',
+    // y??: 保険の種類2
+    'y01','y02','y03','y04','y05','y06','y07','y08','y09','y10',
+	'y11','y12',
+    // p??: 不安を解決する備え
+    'p01','p02','p03','p04','p05','p06','p07','p08','p09','p10',
+    'p11','p12','p13','p14','p15','p16','p17','p18','p19','p24','p25',
+    // p??: WEB申し込みできる保険
+    'w01','w02',
+	
+	
+	];
+
+    // 絞り込み対象の要素のHTMLタグを指定
+    var $chkbxFilter_blocks = ['div.item'];
+    var $chkbxFilter_all = $('#all');
+
+    //絞り込まないボタンをクリック時
+    $chkbxFilter_all.click(function() {
+          $(".sort").prop('checked',false);
+          $chkbxFilter_all.prop('checked',true);
+          // 全ての保険項目を表示する
+          exec_reset_all(true);          
+          // 保険項目数を再更新する
+          show_count();
+    });
+
+
+    // 検索ボタンのクリック時
+    // $("#area_seach_btn .search a").click(function() {
+        $(".search a").click(function() {
+        var $ckecked = false;
+        $.each($chkbxFilter_tags, function(num) {
+            // どれかの検索条件がONであるかチェックする
+            if($('#' + this).is(':checked')) {
+                $ckecked = true;
+            }
+        })
+        // *** 何れの検索条件がONである時 ***
+        if ($ckecked) {
+            // 条件ONの保険項目を検索する
+            exec_checked_search();
+            // 該当項目数を更新する
+            show_count();
+        // *** 何れの検索条件もOFFである時 ***
+        } else {
+            // 全部の保険項目を表示する
+            exec_reset_all(true);
+            // 該当項目数を更新する
+            show_count();
+        }
+        // 移動先アンカーの位置を取得する
+        var $anchor = $("#area-result").offset().top-$('header').height();
+        // 所定のアンカー位置へ 500msのスピードでスクロールする
+        $('body,html').animate({ scrollTop: $anchor }, 400, 'swing');
+		return false;
+    });
+
+    
+//    function countTr(){
+//		var $totalTrALL = $('#resultTbl .item').length;
+//        var $totalTr = $('#resultTbl .item').length;
+//        //$totalTr++;
+//        $(".box-h3-02 span").text($totalTr);
+//    }
+
+
+    // jquery-accordion
+    function detailLst() {
+        $(this).toggleClass("active").next().slideToggle(300);
+        $(this).hide();
+        $(this).next().next().css("display","block");
+    }
+    $(".switch .toggle").click(detailLst);
+
+    $(".toggleClose").click(detailCls);
+
+    // jquery-accordion
+    function detailCls() {
+        $(this).parent().children().toggleClass("active").prev().slideToggle(300);
+        $(this).hide();
+    }
+
+    /**
+     * 全ての保険項目のリセットを行なう
+     * $visible = 表示状態 (true=表示  |  false=非表示)
+     */
+    function exec_reset_all($visible) {
+        $("#resultTbl div.item").each(function($index, $element) {
+            if ($visible) {
+                $($element).removeClass('hidden-not-');
+            } else {
+                $($element).addClass('hidden-not-');
+            }
+        });
+    }
+
+    /**
+     * 保険項目の該当件数を表示する
+     */
+    function show_count(){
+        var $visualNum = 0;
+        $('#resultTbl div.item').each(function(){
+            if($(this).is(':visible')) {
+                $visualNum++;
+            }
+        });
+        $str_count = ("00" + $visualNum).slice(-3);
+        $(".box-h3-02 span").text($str_count);
+    }
+
+
+    /**
+     * チェックされている条件の保険項目を検索し、表示する
+     */
+    function exec_checked_search() {
+        // *** 保険項目でのループ ***
+        $("#resultTbl div.item").each(function($index, $element) {
+            // クラス属性を取得
+            var $class_name = $element.getAttribute('class');
+            // クラス名を分解して配列に格納
+            var $class_names = $class_name.split(' ');
+            // 保険項目を非表示にする
+            $($element).addClass('hidden-not-');
+            // *** クラス名配列のループ ***
+            $.each($class_names, function() {
+                // 処理中のクラスがチェックONの時
+                if ($('#' + this).is(':checked')) {
+//                    console.log('index:' + $index + ' / checked: ' + this);
+                    // 保険項目を表示する
+                    $($element).removeClass('hidden-not-');
+                    return false;       // JQueryのループをbreak させる動作
+                }
+            }); 
+        })
+    }
+    
+    
+//    /**
+//     * 検索処理関数
+//     */
+//    function exec_search() {
+//        $.when(
+//            $.each($chkbxFilter_tags, function(num) {
+//                if($('#' + this).is(':checked')) {
+//                    $("#area-result " + $chkbxFilter_blocks + ":not(." + this + ")").addClass('hidden-not-' + this);
+//                    $chkbxFilter_all.prop('checked',false).parent().removeClass("selected");
+//                } else if($('#' + this).not(':checked')) {
+//                    $("#area-result " + $chkbxFilter_blocks + ":not(." + this + ")").removeClass('hidden-not-' + this);
+//                }
+//            })
+//        ).done(function() {
+//            var $visualNum = 0;
+//            $('#resultTbl div.item').each(function(){
+//                if($(this).is(':visible')) {
+//                    $visualNum++;
+//                }
+//            });
+//			if($visualNum < 9) {
+//				$visualNum = ("00" + $visualNum).slice(0);
+//            } else if ( $visualNum < 99 ) {
+//				$visualNum = ("0" + $visualNum).slice(0);
+//			} else {
+//				$visualNum = ("" + $visualNum).slice(0);
+//			}
+//            $(".box-h3-02 span").text($visualNum);
+//        });
+//
+////        //チェックボックスが1つも選択されていない場合に、絞り込まないボタンにclass="selected"をつける
+////        if ($('.sort:checked').length === 0 ){
+////            $chkbxFilter_all.prop('checked',true).parent().addClass("selected");
+////            $(".sort").parent().removeClass("selected");
+////            countTr();
+////        }
+//    }
+    
+    
+    
+    /*****************************************************
+     * URLパラメータで指定した絞り込み条件で検索する
+     * 呼び方： index.html?絞り込みチェックボックスID=1&・・・
+     * 
+     * @example  index.html?s01=1&s02=1
+     *****************************************************/
+    // パラメータ格納用連想配列
+    var $params_arr = Array();
+    // URLパラメータを取得する
+    var $params_str = $(location).attr('search').substring(1);
+    // アンパサンドでURLパラメータを分割した配列を取得する
+    var $pair_arr = $params_str.split('&');
+
+    // *** 全てのURLパラメータ配列を処理する ***
+    for (var $idx=0; $idx<$pair_arr.length; $idx++) {
+        // 各パラメータ内容を、キーと値に分割する
+        var $key_value = $pair_arr[$idx].split('=');
+        // 連想配列にパラメータ情報 (Key名 = 値) を追加する
+        $params_arr[$key_value[0]] = $key_value[1];
+    }
+        
+    // ONになっている絞り込みチェックボックスの数
+    var $checked_count = 0;
+    // *** 全てのパラメータ格納用連想配列を処理する ***
+    for ($key in $params_arr) {
+        // キーに対応する値に１が設定されている時 
+        if (1 == parseInt($params_arr[$key], 10)) {
+            $checked_count++;
+            // キー名と同一名のHTML-ID値のチェックボックスをONにする
+            $('#' + $key).prop('checked', true);
+        }
+    }
+    
+    // *** 絞り込み条件が指定されている時 ***
+    if ($checked_count>=1) {
+        // 条件ONの保険項目を検索する
+        exec_checked_search();
+        // 該当項目数を更新する
+        show_count();
+        // 移動先アンカーの位置を取得する
+        var $anchor = $("#area-result").offset().top;
+        // 所定のアンカー位置へ 500msのスピードでスクロールする
+        $('body,html').animate({ scrollTop: $anchor }, 400, 'swing');
+    // *** 絞り込み条件が指定されていない時 ***
+    } else {
+        // 全ての保険項目を表示する
+        exec_reset_all(true);
+        // 該当項目数を更新する
+        show_count();
+    }
+    
+    
+});
