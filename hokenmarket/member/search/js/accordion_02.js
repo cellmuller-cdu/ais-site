@@ -17,7 +17,7 @@ $(function(){
 });
 */
 $(function(){
-	$('td.acco_box').after().hide();
+	// $('td.acco_box').after().hide();
     $('.acco_btn').on('click',function(){
 		if($(this).is('.open')){
 			$(this).removeClass('open');
